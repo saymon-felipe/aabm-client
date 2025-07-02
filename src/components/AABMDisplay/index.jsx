@@ -17,8 +17,13 @@ function AABMDisplay() {
     transcriptionsEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const requestResponse = (text) => {
-    socketRef.current.emit('requestResponse', { text: text });
+  const requestResponse = (text, previousTranscriptions) => {
+    const context = previousTranscriptions.filter(item => {
+      return item.startsWith('FINAL:') || item.startsWith('RESPOSTA:');
+    });
+
+    socketRef.current.emit('requestResponse', { text: text, context: context.join(";") });
+    console.log("RESPOSTA REQUISITADA AO SERVIDOR");
   };
 
   useEffect(() => {
@@ -40,7 +45,7 @@ function AABMDisplay() {
           const finalTranscript = `FINAL: ${data.text}`;
           newItems.push(finalTranscript);
 
-          requestResponse(data.text);
+          requestResponse(data.text, newItems);
 
         } else {
           const lastIndex = newItems.length - 1;
@@ -105,7 +110,6 @@ function AABMDisplay() {
 
   useEffect(() => {
     scrollToBottom();
-
     localStorage.setItem("meeting_transcribed", JSON.stringify(transcriptions));
   }, [transcriptions]);
 
